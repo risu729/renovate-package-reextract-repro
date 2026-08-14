@@ -31,14 +31,14 @@ not depend on package release ages changing after the snapshot date.
 
 Results from Renovate's real `getUpdatedPackageFiles()` path:
 
-| Renovate source                                     | Bun        | npm   | Gradle | Artifact errors |
-| --------------------------------------------------- | ---------- | ----- | ------ | --------------- |
-| `renovatebot/renovate@72266403b6` (`upstream/main`) | warns      | warns | warns  | none            |
-| `risu729/renovate@72290d94f4` (Bun fix)             | no warning | warns | warns  | none            |
+| Renovate source                                     | Bun        | npm        | Gradle     | Artifact errors |
+| --------------------------------------------------- | ---------- | ---------- | ---------- | --------------- |
+| `renovatebot/renovate@72266403b6` (`upstream/main`) | warns      | warns      | warns      | none            |
+| `risu729/renovate@87abd99b5a` (combined fix)        | no warning | no warning | no warning | none            |
 
 The updated package and lock files were byte-identical between the two source
-versions for all three managers. The Bun fix changes only its re-extraction
-result.
+versions for all three managers. The combined fix changes only re-extraction
+results.
 
 ## Running the harness
 
@@ -60,9 +60,9 @@ EXPECT_MISSING_REEXTRACTORS=bun,npm,gradle \
 pnpm vitest lib/workers/repository/update/branch/reextract-repro.spec.ts --run
 ```
 
-For the Bun-fix branch, use
-`EXPECT_MISSING_REEXTRACTORS=npm,gradle` instead. Always use a fresh target copy
-for each run because artifact generation intentionally modifies the fixtures.
+For the combined-fix branch, use an empty
+`EXPECT_MISSING_REEXTRACTORS=` instead. Always use a fresh target copy for each
+run because artifact generation intentionally modifies the fixtures.
 
 ## Related Renovate reports
 
