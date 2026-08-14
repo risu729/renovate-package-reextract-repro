@@ -10,7 +10,8 @@ artifacts but do not expose a single-file `extractPackageFile()` implementation:
 | Gradle  | `fixtures/gradle/build.gradle` | the Gradle wrapper updates `gradle.lockfile` |
 
 When an upgrade has `pendingVersions`, each artifact result reaches Renovate's
-post-artifact safety check. On `upstream/main`, all three managers then emit:
+post-artifact safety check. On `renovatebot/renovate@c953fafcdc`, all three
+managers then emit:
 
 ```text
 Could not re-extract the packageFile after updating it
@@ -20,25 +21,27 @@ Could not re-extract the packageFile after updating it
 
 The comparisons were run on 2026-08-14 with these explicit upgrades:
 
-| Manager | Upgrade                                 | Pending version(s)        |
-| ------- | --------------------------------------- | ------------------------- |
-| Bun     | `wrangler` 4.118.0 → 4.120.1            | 4.121.0, 4.122.0, 4.123.0 |
-| npm     | `packageManager` pnpm 10.13.1 → 10.14.0 | 10.15.0                   |
-| Gradle  | Guava 33.4.0-jre → 33.4.8-jre           | 33.5.0-jre                |
+| Manager | Upgrade                                               | Pending version(s)        |
+| ------- | ----------------------------------------------------- | ------------------------- |
+| Bun     | `wrangler` 4.118.0 → `>=4.120.1 <=4.123.0`            | 4.121.0, 4.122.0, 4.123.0 |
+| npm     | `packageManager` pnpm 10.13.1 → 10.14.0               | 10.15.0                   |
+| Gradle  | Guava 33.4.0-jre → `[33.4.8-jre,33.5.0-jre]`         | 33.5.0-jre                |
 
-The version lists are recorded directly in the harness, so the comparison does
-not depend on package release ages changing after the snapshot date.
+The bounded ranges force Bun and Gradle to resolve a pending version while
+preventing future releases from changing the result. The selected and pending
+version lists are recorded directly in the harness.
 
 Results from Renovate's real `getUpdatedPackageFiles()` path:
 
-| Renovate source                                     | Bun        | npm        | Gradle     | Artifact errors |
-| --------------------------------------------------- | ---------- | ---------- | ---------- | --------------- |
-| `renovatebot/renovate@72266403b6` (`upstream/main`) | warns      | warns      | warns      | none            |
-| `risu729/renovate@87abd99b5a` (combined fix)        | no warning | no warning | no warning | none            |
+| Renovate source                                      | Bun        | npm        | Gradle     | Artifact errors |
+| ---------------------------------------------------- | ---------- | ---------- | ---------- | --------------- |
+| `renovatebot/renovate@c953fafcdc` (`origin/main`)    | warns      | warns      | warns      | none            |
+| `risu729/renovate@5cb6522233` (combined fix)         | no warning | no warning | no warning | Bun and Gradle  |
 
-The updated package and lock files were byte-identical between the two source
-versions for all three managers. The combined fix changes only re-extraction
-results.
+The updated package and lock files are byte-identical between the two source
+versions for all three managers. The combined fix changes only re-extraction:
+it now reports that Bun and Gradle resolved pending versions from their
+lockfiles.
 
 ## Running the harness
 
@@ -60,9 +63,9 @@ EXPECT_MISSING_REEXTRACTORS=bun,npm,gradle \
 pnpm vitest lib/workers/repository/update/branch/reextract-repro.spec.ts --run
 ```
 
-For the combined-fix branch, use an empty
-`EXPECT_MISSING_REEXTRACTORS=` instead. Always use a fresh target copy for each
-run because artifact generation intentionally modifies the fixtures.
+For the combined-fix branch, use an empty `EXPECT_MISSING_REEXTRACTORS=` and
+set `EXPECT_PENDING_VERSION_ERRORS=bun,gradle`. Always use a fresh target copy
+for each run because artifact generation intentionally modifies the fixtures.
 
 ## Related Renovate reports
 

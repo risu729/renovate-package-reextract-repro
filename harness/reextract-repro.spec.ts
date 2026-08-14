@@ -28,7 +28,7 @@ const repros: Repro[] = [
       depType: "devDependencies",
       lockFiles: ["fixtures/bun/bun.lock"],
       manager: "bun",
-      newValue: "4.120.1",
+      newValue: ">=4.120.1 <=4.123.0",
       newVersion: "4.120.1",
       packageFile: "fixtures/bun/package.json",
       pendingVersions: ["4.121.0", "4.122.0", "4.123.0"],
@@ -69,7 +69,7 @@ const repros: Repro[] = [
       lockFiles: ["fixtures/gradle/gradle.lockfile"],
       manager: "gradle",
       managerData: { fileReplacePosition: 122 },
-      newValue: "33.4.8-jre",
+      newValue: "[33.4.8-jre,33.5.0-jre]",
       newVersion: "33.4.8-jre",
       packageFile: "fixtures/gradle/build.gradle",
       pendingVersions: ["33.5.0-jre"],
@@ -82,6 +82,9 @@ describe("missing package-file re-extractors", () => {
   const localDir = process.env.RENOVATE_REEXTRACT_REPRO_DIR!;
   const expectedWarnings = new Set(
     process.env.EXPECT_MISSING_REEXTRACTORS?.split(",").filter(Boolean),
+  );
+  const expectedArtifactErrors = new Set(
+    process.env.EXPECT_PENDING_VERSION_ERRORS?.split(",").filter(Boolean),
   );
 
   beforeEach(() => {
@@ -148,7 +151,16 @@ describe("missing package-file re-extractors", () => {
           message === "Could not re-extract the packageFile after updating it",
       );
 
-      expect(result.artifactErrors).toEqual([]);
+      expect(result.artifactErrors).toHaveLength(
+        expectedArtifactErrors.has(repro.manager) ? 1 : 0,
+      );
+      if (expectedArtifactErrors.has(repro.manager)) {
+        expect(
+          repro.upgrade.pendingVersions?.some((version) =>
+            result.artifactErrors[0].stderr.includes(version),
+          ),
+        ).toBe(true);
+      }
       expect(result.updatedArtifacts).not.toEqual([]);
       expect(reextractWarnings).toHaveLength(
         expectedWarnings.has(repro.manager) ? 1 : 0,
