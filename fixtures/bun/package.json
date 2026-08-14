@@ -1,0 +1,7 @@
+{
+  "name": "renovate-bun-reextract-repro",
+  "private": true,
+  "devDependencies": {
+    "wrangler": "4.118.0"
+  }
+}
