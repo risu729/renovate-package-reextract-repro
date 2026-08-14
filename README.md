@@ -69,6 +69,9 @@ for each run because artifact generation intentionally modifies the fixtures.
 
 ## Related Renovate reports
 
+This reproduction accompanies
+[Discussion #45284](https://github.com/renovatebot/renovate/discussions/45284).
+
 No earlier Renovate issue or pull request containing the exact warning was
 found as of 2026-08-14. The closest existing reports concern the generic safety
 check rather than these missing manager extractors:
